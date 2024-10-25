@@ -1,0 +1,36 @@
+Escribe un programa keepup.c en C para Linux que reciba un comando como parámetro
+y sus argumentos.
+El primer parámetro que recibe keepup tiene que ser un path absoluto en el que se encuentre
+el ejecutable y el resto de parámetros son los argumentos que va a recibir dicho comando en su ejecución.
+El comando se ejecutará con sus argumentos y se esperará a que acabe.
+Si acaba con éxito, keepup saldrá con éxito. Si el programa sale con
+error, keepup informará de lo que ha sucedido por la salida de error (explicitando
+el número de veces que ha sucedido) y rearrancará el programa.
+
+Ejemplo:
+
+$> ./keepup /usr/bin/ls .
+a b c d
+$> echo $?
+0
+$> ./keepup /usr/bin/ls noexiste
+ls: cannot access 'noexiste': No such file or directory
+keepup: the command /usr/bin/ls exited ntimes: 1
+ls: cannot access 'noexiste': No such file or directory
+keepup: the command /usr/bin/ls exited ntimes: 2
+ls: cannot access 'noexiste': No such file or directory
+keepup: the command /usr/bin/ls exited ntimes: 3
+ls: cannot access 'noexiste': No such file or directory
+keepup: the command /usr/bin/ls exited ntimes: 4
+ls: cannot access 'noexiste': No such file or directory
+keepup: the command /usr/bin/ls exited ntimes: 5
+ls: cannot access 'noexiste': No such file or directory
+keepup: the command /usr/bin/ls exited ntimes: 6
+ctrl^c
+$> touch noexiste
+$> ./keepup /usr/bin/ls noexiste
+noexiste
+$> ./keepup /usr/bin/blabla
+keepup: cannot execute /usr/bin/blabla
+$> echo $?
+1
