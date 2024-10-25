@@ -5,6 +5,15 @@
 #include <errno.h>
 #include <sys/wait.h>
 
+enum {
+    CMD_NOT_FOUND = 127,
+};
+
+
+int isAbsolutePath(char *path) {
+    return path[0] == '/';
+}
+
 int executeCommand(char *argv[]) {
     int sts;
     int pidchild;
@@ -16,9 +25,9 @@ int executeCommand(char *argv[]) {
             break;
         case 0:
             execv(argv[0], argv);
-            // Verificar si el error es debido a que el archivo no existe
+
             if (errno == ENOENT) {
-                exit(127); // 127 indica "comando no encontrado"
+                exit(CMD_NOT_FOUND);
             } else {
                 err(EXIT_FAILURE, "execv failed");
             }
@@ -37,7 +46,7 @@ int executeCommand(char *argv[]) {
     if (pidwait != pidchild) {
         warnx("extra child %d", pidwait);
     }
-    return -1; // Código de error general
+    return -1;
 }
 
 int main(int argc, char *argv[]) {
@@ -52,12 +61,17 @@ int main(int argc, char *argv[]) {
     argc--;
     argv++;
 
-    do {
+    if (!isAbsolutePath(argv[0])) {
+        fprintf(stderr, "keepup: the command %s is not an absolute path\n", argv[0]);
+        exit(EXIT_FAILURE);
+    }
+
+    for (;;) {
         result = executeCommand(argv);
         if (result == 0) {
-            exit(EXIT_SUCCESS); // Comando terminó exitosamente
+            exit(EXIT_SUCCESS);
         }
-        if (result == 127) { // Error de execv, comando no encontrado
+        if (result == CMD_NOT_FOUND) {
             fprintf(stderr, "keepup: cannot execute %s\n", argv[0]);
             exit(EXIT_FAILURE);
         }
@@ -65,7 +79,7 @@ int main(int argc, char *argv[]) {
         attempts++;
         fprintf(stderr, "keepup: the command %s exited ntimes: %d\n", argv[0], attempts);
         sleep(1);
-    } while (1); // Reintenta hasta que el comando sea exitoso o termine por señal
+    } 
 
-    return EXIT_SUCCESS;
+    exit(EXIT_SUCCESS);
 }
